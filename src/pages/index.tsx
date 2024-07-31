@@ -18,7 +18,7 @@ const ScheduleGrid = dynamic(() => import("@/components/grid/ScheduleGrid"), {
 });
 
 export default function Home({}) {
-	const [sessions, setSessions] = useState(sessionListGenerator(15));
+	const [sessions, setSessions] = useState(sessionListGenerator(10));
 	const [selectedDays, setSelectedDays] = useState(new Set<Day>(["Mon"]));
 	const [startHour, setStartHour] = useState(10);
 	const [displayHours, setDisplayHours] = useState(10);

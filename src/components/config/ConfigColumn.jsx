@@ -17,10 +17,10 @@ const Content = (props) => {
 				/>
 			</div>
 			<div className={styles.content_wrap}>
-				<label for={"days"}>Days</label>
+				<label htmlFor={"days"}>Days</label>
 				{["Mon", "Tue", "Wed", "Thur", "Fri", "Sat", "Sun"].map((day) => (
 					<div key={day} className={styles.day_check}>
-						<label for={day}>{day}: </label>
+						<label htmlFor={day}>{day}: </label>
 						<input
 							id={"day"}
 							key={day}
