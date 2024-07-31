@@ -7,11 +7,12 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
-
   },
   "dependencies": {
     "@tanstack/react-table": "^8.10.7",
     "@tanstack/react-virtual": "^3.0.1",
+    "lodash": "^4.17.21",
+    "lodash.uniqueid": "^4.0.1",
     "next": "14.0.4",
     "react": "^18",
     "react-dom": "^18",
@@ -19,6 +20,7 @@
     "sass": "^1.69.5"
   },
   "devDependencies": {
+    "@types/lodash.uniqueid": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",

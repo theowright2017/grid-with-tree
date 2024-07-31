@@ -37,6 +37,10 @@ export const StaticDayRowGenerator = (
 		const row: StaticDayRow = {
 			day: day,
 			id: day,
+			subRows: buildSubRowsForDay(
+				sessionList,
+				config
+			)
 			// subRows: gridCoordinatesPerDayRow(
 			// 	sessionList,
 			// 	buildConfig(
@@ -44,11 +48,7 @@ export const StaticDayRowGenerator = (
 			// 		configSetup.displayHours,
 			// 		configSetup.selectedDays
 			// 	)
-			// )
-			subRows: buildSubRowsForDay(
-				sessionList,
-				config
-			).map((map, index) => {
+			.map((map, index) => {
 				return {
 					index: index,
 					subRowMap: map,

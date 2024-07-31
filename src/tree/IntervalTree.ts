@@ -17,36 +17,48 @@ class IntervalTreeNode {
 class IntervalTree {
 	private root: IntervalTreeNode | null = null;
 	private readonly BALANCE_THRESHOLD: number = 2; // Balance threshold
+	private mainRoot: IntervalTreeNode | null = null;
 
-	insert(interval: [number, number]): void {
+	insert(interval: [number, number]): boolean {
+		const [node, inserted] = this._insert(this.root, interval);
+		if (this.mainRoot === null) {
+			this.mainRoot = node;
+		}
 
-		this.root = this._insert(this.root, interval);
+		this._setRoot(this.mainRoot);
 		if (this._needsRebuild()) {
 			this.rebuild();
 		}
+		return inserted;
+	}
+
+	private _setRoot(node: IntervalTreeNode | null) {
+		this.root = node;
+		// console.log('ROOT', this.root)
+		// console.log('MAIN', this.mainRoot)
 	}
 
 	private _insert(
 		node: IntervalTreeNode | null,
-		interval: [number, number],
-	): IntervalTreeNode | null {
+		interval: [number, number]
+	): [IntervalTreeNode, boolean] {
 		if (node === null) {
 			const newNode = new IntervalTreeNode(interval);
 
-			return newNode;
+			return [newNode, true];
 		}
 		let l = node.interval[0];
 
-
 		if (this._doOverlap(interval, node.interval)) {
-			console.log("OVERLAP---", interval, node.interval);
-			return node;
+			// console.log("OVERLAP---", interval, node.interval);
+			return [node, false];
 		}
 
+		let inserted;
 		if (interval[0] < l) {
-			node.left = this._insert(node.left, interval);
+			[node.left, inserted] = this._insert(node.left, interval);
 		} else {
-			node.right = this._insert(node.right, interval);
+			[node.right, inserted] = this._insert(node.right, interval);
 		}
 
 		node.max = Math.max(node.max, interval[1]);
@@ -55,7 +67,7 @@ class IntervalTree {
 		node.height =
 			1 + Math.max(this._height(node.left), this._height(node.right));
 
-		return node;
+		return [node, inserted];
 	}
 
 	private _height(node: IntervalTreeNode | null): number {
@@ -75,7 +87,7 @@ class IntervalTree {
 	rebuild(): void {
 		if (!this.root) return;
 		const nodes = this._collectNodes(this.root);
-		this.root = this._buildBalanced(nodes, 0, nodes.length - 1);
+		this.mainRoot = this._buildBalanced(nodes, 0, nodes.length - 1);
 	}
 
 	private _collectNodes(node: IntervalTreeNode | null): IntervalTreeNode[] {
@@ -140,7 +152,12 @@ class IntervalTree {
 		interval1: [number, number],
 		interval2: [number, number]
 	): boolean {
-		return interval1[0] <= interval2[1] && interval2[0] <= interval1[1];
+		return (
+			(interval1[0] < interval2[1] && interval2[0] < interval1[1]) ||
+			(interval1[0] === interval2[0] && interval1[1] === interval2[1]) ||
+			interval1[0] === interval2[0] ||
+			interval1[1] === interval2[1]
+		);
 	}
 
 	// private _doesClash(nodeParams, insertParams): boolean {

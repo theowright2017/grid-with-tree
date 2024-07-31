@@ -112,8 +112,8 @@ const ScheduleGrid = (props: Props) => {
 															? subRowMap.get(slotNum as number)
 															: undefined;
 
-														console.log('subRowMap', subRowMap)
-														console.log('NUM', slotNum)
+														// console.log('subRowMap', subRowMap)
+														// console.log('NUM', slotNum)
 
 														return (
 															<td
@@ -208,7 +208,7 @@ const SlotCellWithItem = (props: {
 
 	const itemWidth = (item.isoDuration.endMinsAfterMidnight - item.isoDuration.startMinsAfterMidnight) / 30
 	
-	console.log('WIDTH', item)
+	// console.log('WIDTH', item)
 	return (
 		<React.Fragment>
 			<div

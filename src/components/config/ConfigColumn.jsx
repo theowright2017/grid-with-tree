@@ -53,7 +53,7 @@ const Display = (props) => {
         setDisplayHours
     } = props;
 
-    console.log('START', startHour)
+    // console.log('START', startHour)
 	return (
 		<div className={styles.display_container}>
 			<div className={styles.display_wrap}>

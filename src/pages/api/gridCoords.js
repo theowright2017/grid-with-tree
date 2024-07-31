@@ -1,6 +1,7 @@
 import { getSlotFromDurationMins } from "../../components/helpers/gridHelpers";
 
 export function gridCoordinatesPerDayRow(sessionsForDay, config) {
+	console.time('plot2')
 	const subRowToContentsMap = new Map();
 
 	function subRowContents() {
@@ -57,8 +58,10 @@ export function gridCoordinatesPerDayRow(sessionsForDay, config) {
 			}
 		}
 	}
-
-	return [...subRowToContentsMap.values()].map(
+	const res = [...subRowToContentsMap.values()].map(
 		(content) => content.sessionsInSubRowMap
-	);
+	)
+
+	console.timeEnd('plot2')
+	return res;
 }

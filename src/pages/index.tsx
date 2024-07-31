@@ -18,7 +18,7 @@ const ScheduleGrid = dynamic(() => import("@/components/grid/ScheduleGrid"), {
 });
 
 export default function Home({}) {
-	const [sessions, setSessions] = useState(sessionListGenerator(10));
+	const [sessions, setSessions] = useState(sessionListGenerator(5000));
 	const [selectedDays, setSelectedDays] = useState(new Set<Day>(["Mon"]));
 	const [startHour, setStartHour] = useState(10);
 	const [displayHours, setDisplayHours] = useState(10);
@@ -35,10 +35,10 @@ export default function Home({}) {
 		),
 	];
 
-	console.log('START', startHour)
+	// console.log('START', startHour)
 	const configObj = buildConfig(startHour, displayHours, selectedDays);
 
-	console.log('OBJ', configObj)
+	// console.log('OBJ', configObj)
 
 	const allSubRows = data.flatMap((row) => row.subRows);
 
