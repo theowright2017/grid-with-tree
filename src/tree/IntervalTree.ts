@@ -4,13 +4,15 @@ class IntervalTreeNode {
 	left: IntervalTreeNode | null;
 	right: IntervalTreeNode | null;
 	height: number;
+	subRowIndex: number;
 
-	constructor(interval: [number, number]) {
+	constructor(interval: [number, number], subRowIndex: number) {
 		this.interval = interval;
 		this.max = interval[1];
 		this.left = null;
 		this.right = null;
 		this.height = 1; // Initial height of a new node is 1
+		this.subRowIndex = subRowIndex;
 	}
 }
 
@@ -19,46 +21,63 @@ class IntervalTree {
 	private readonly BALANCE_THRESHOLD: number = 2; // Balance threshold
 	private mainRoot: IntervalTreeNode | null = null;
 
-	insert(interval: [number, number]): boolean {
-		const [node, inserted] = this._insert(this.root, interval);
+	insert(interval: [number, number], subRowIndex: number): [boolean, number] {
+		const [node, inserted, subIdx] = this._insert(
+			this.mainRoot,
+			interval,
+			subRowIndex
+		);
 		if (this.mainRoot === null) {
 			this.mainRoot = node;
 		}
 
-		this._setRoot(this.mainRoot);
+		// this._setRoot(this.mainRoot);
 		if (this._needsRebuild()) {
 			this.rebuild();
 		}
-		return inserted;
+		return [inserted, subIdx];
 	}
 
-	private _setRoot(node: IntervalTreeNode | null) {
-		this.root = node;
-		// console.log('ROOT', this.root)
-		// console.log('MAIN', this.mainRoot)
-	}
+	// private _setRoot(node: IntervalTreeNode | null) {
+	// 	this.root = node;
+	// 	// console.log('ROOT', this.root)
+	// 	// console.log('MAIN', this.mainRoot)
+	// }
 
 	private _insert(
 		node: IntervalTreeNode | null,
-		interval: [number, number]
-	): [IntervalTreeNode, boolean] {
+		interval: [number, number],
+		subRowIndex: number
+	): [IntervalTreeNode, boolean, number] {
 		if (node === null) {
-			const newNode = new IntervalTreeNode(interval);
-
-			return [newNode, true];
+			const newNode = new IntervalTreeNode(interval, subRowIndex);
+			// console.log("new node--", newNode);
+			return [newNode, true, subRowIndex];
 		}
 		let l = node.interval[0];
 
-		if (this._doOverlap(interval, node.interval)) {
+		if (
+			subRowIndex === node.subRowIndex &&
+			this._doOverlap(interval, node.interval)
+		) {
 			// console.log("OVERLAP---", interval, node.interval);
-			return [node, false];
+			// console.log("CLASH--");
+			return [node, false, subRowIndex];
 		}
 
 		let inserted;
 		if (interval[0] < l) {
-			[node.left, inserted] = this._insert(node.left, interval);
+			[node.left, inserted, subRowIndex] = this._insert(
+				node.left,
+				interval,
+				subRowIndex
+			);
 		} else {
-			[node.right, inserted] = this._insert(node.right, interval);
+			[node.right, inserted, subRowIndex] = this._insert(
+				node.right,
+				interval,
+				subRowIndex
+			);
 		}
 
 		node.max = Math.max(node.max, interval[1]);
@@ -67,7 +86,7 @@ class IntervalTree {
 		node.height =
 			1 + Math.max(this._height(node.left), this._height(node.right));
 
-		return [node, inserted];
+		return [node, inserted, subRowIndex];
 	}
 
 	private _height(node: IntervalTreeNode | null): number {
@@ -79,14 +98,14 @@ class IntervalTree {
 	}
 
 	private _needsRebuild(): boolean {
-		const balance = Math.abs(this._balanceFactor(this.root));
+		const balance = Math.abs(this._balanceFactor(this.mainRoot));
 		// console.log("BALANCE---", balance, this.BALANCE_THRESHOLD);
 		return balance > this.BALANCE_THRESHOLD;
 	}
 
 	rebuild(): void {
-		if (!this.root) return;
-		const nodes = this._collectNodes(this.root);
+		if (!this.mainRoot) return;
+		const nodes = this._collectNodes(this.mainRoot);
 		this.mainRoot = this._buildBalanced(nodes, 0, nodes.length - 1);
 	}
 
@@ -152,11 +171,15 @@ class IntervalTree {
 		interval1: [number, number],
 		interval2: [number, number]
 	): boolean {
+		const interval1Start = interval1[0];
+		const interval1End = interval1[1];
+		const interval2Start = interval2[0];
+		const interval2End = interval2[1];
 		return (
-			(interval1[0] < interval2[1] && interval2[0] < interval1[1]) ||
-			(interval1[0] === interval2[0] && interval1[1] === interval2[1]) ||
-			interval1[0] === interval2[0] ||
-			interval1[1] === interval2[1]
+			(interval1Start < interval2End && interval2Start < interval1End) ||
+			(interval1Start === interval2Start && interval1End === interval2End) ||
+			interval1Start === interval2Start ||
+			interval1End === interval2End
 		);
 	}
 

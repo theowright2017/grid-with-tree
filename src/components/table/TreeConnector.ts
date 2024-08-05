@@ -10,14 +10,14 @@ interface SessionSlot {
 }
 
 export function buildSubRowsForDay(sessionList, config) {
-    // const tree = new IntervalTree();
-	const subRowToTreeMap = new Map([
-		[0, new IntervalTree()],
-	])
+    const tree = new IntervalTree();
+	// const subRowToTreeMap = new Map([
+	// 	[0, new IntervalTree()],
+	// ])
 	let subRows: SessionSlot[][] = []
-	let altSubs: [number, number][] = []
+	// let altSubs: [number, number][] = []
 	console.time('plotgrid')
-	sessionList.forEach((session) => {
+	sessionList.forEach((session, idx) => {
 		const startSlot = Math.floor(getSlotFromDurationMins(
 			session.isoDuration.startMinsAfterMidnight,
 			config
@@ -33,31 +33,54 @@ export function buildSubRowsForDay(sessionList, config) {
 		let subRowIndex = 0
 
 		while(!hasInserted) {
-			const tree = subRowToTreeMap.get(subRowIndex)
-			const didInsert = tree.insert([startSlot, endSlot], session.id)
-		
-			if(didInsert) {
+			if (idx === sessionList.length - 1) {
+				console.time('tree')
+			}
+			const [didInsert, subIdx] = tree.insert([startSlot, endSlot], subRowIndex)
+			// console.log('didInsert', didInsert, subIdx)
+			if (idx === sessionList.length - 1) {
+				console.timeEnd('tree')
+			}
+			
+			if (didInsert) {
 				hasInserted = true
-				if (!subRows[subRowIndex]) {
-					subRows[subRowIndex] = []
+				if (!subRows[subIdx]) {
+					subRows[subIdx] = []
+				} else {
+					subRows[subIdx].push({interval: [startSlot, endSlot], session})
 				}
-				// subRows[subRowIndex].push({
-				// 	interval: [startSlot, endSlot],
-				// 	session: session
-				// })
-				subRows[subRowIndex].push()
-				// if (!altSubs[subRowIndex]) {
-				// 	altSubs[subRowIndex] = []
-				// }
-				// altSubs[subRowIndex].push([session.isoDuration.startMinsAfterMidnight, session.isoDuration.endMinsAfterMidnight])
-				subRowIndex = 0
-			} else if (didInsert === false) {
-				subRowIndex++
-				if (!subRowToTreeMap.has(subRowIndex)) {
-					subRowToTreeMap.set(subRowIndex, new IntervalTree());
-				} 
-			} 
+			} else {
+				subRowIndex = subIdx + 1
+			}
 		}
+
+
+
+		// while(!hasInserted) {
+			// const tree = subRowToTreeMap.get(subRowIndex)
+			// const didInsert = tree.insert([startSlot, endSlot], session.id)
+			// if(didInsert) {
+			// 	hasInserted = true
+			// 	if (!subRows[subRowIndex]) {
+			// 		subRows[subRowIndex] = []
+			// 	}
+			// 	// subRows[subRowIndex].push({
+			// 	// 	interval: [startSlot, endSlot],
+			// 	// 	session: session
+			// 	// })
+			// 	subRows[subRowIndex].push()
+			// 	// if (!altSubs[subRowIndex]) {
+			// 	// 	altSubs[subRowIndex] = []
+			// 	// }
+			// 	// altSubs[subRowIndex].push([session.isoDuration.startMinsAfterMidnight, session.isoDuration.endMinsAfterMidnight])
+			// 	subRowIndex = 0
+			// } else if (didInsert === false) {
+			// 	subRowIndex++
+			// 	if (!subRowToTreeMap.has(subRowIndex)) {
+			// 		subRowToTreeMap.set(subRowIndex, new IntervalTree());
+			// 	} 
+			// } 
+		// }
 
         
 	});
