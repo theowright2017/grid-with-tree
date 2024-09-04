@@ -4,7 +4,7 @@ class IntervalTreeNode {
 	left: IntervalTreeNode | null;
 	right: IntervalTreeNode | null;
 	height: number;
-	subRowIndex: number;
+	subRowIndex: Set<number>;
 
 	constructor(interval: [number, number], subRowIndex: number) {
 		this.interval = interval;
@@ -12,7 +12,18 @@ class IntervalTreeNode {
 		this.left = null;
 		this.right = null;
 		this.height = 1; // Initial height of a new node is 1
-		this.subRowIndex = subRowIndex;
+		this.subRowIndex = new Set([subRowIndex]);
+	}
+}
+
+class Interval {
+	slots: [number, number];
+	isDuplicate: boolean;
+	inserted: boolean;
+	constructor(slots: [number, number], isDuplicate: boolean) {
+		this.slots = slots;
+		this.isDuplicate = isDuplicate;
+		this.inserted = false;
 	}
 }
 
@@ -22,9 +33,10 @@ class IntervalTree {
 	private mainRoot: IntervalTreeNode | null = null;
 
 	insert(interval: [number, number], subRowIndex: number): [boolean, number] {
+		const newInt = new Interval(interval, false);
 		const [node, inserted, subIdx] = this._insert(
 			this.mainRoot,
-			interval,
+			newInt,
 			subRowIndex
 		);
 		if (this.mainRoot === null) {
@@ -46,47 +58,79 @@ class IntervalTree {
 
 	private _insert(
 		node: IntervalTreeNode | null,
-		interval: [number, number],
+		interval: Interval,
 		subRowIndex: number
-	): [IntervalTreeNode, boolean, number] {
+	): [IntervalTreeNode | null, boolean, number] {
 		if (node === null) {
-			const newNode = new IntervalTreeNode(interval, subRowIndex);
+			if (interval.isDuplicate) {
+				return [node, true, subRowIndex];
+			}
+			const newNode = new IntervalTreeNode(interval.slots, subRowIndex);
 			// console.log("new node--", newNode);
+			interval.inserted = true;
 			return [newNode, true, subRowIndex];
 		}
-		let l = node.interval[0];
 
+		const isDuplicate = this._isDuplicate(node.interval, interval.slots);
+		if (isDuplicate) {
+			interval.isDuplicate = true;
+		}
+
+		let l = node.interval[0];
+		// console.log('NODE', node)
+		// console.log('INTERVAL', interval)
 		if (
-			subRowIndex === node.subRowIndex &&
-			this._doOverlap(interval, node.interval)
+			  node.subRowIndex.has(subRowIndex) &&
+			this._doOverlap(interval.slots, node.interval)
 		) {
 			// console.log("OVERLAP---", interval, node.interval);
 			// console.log("CLASH--");
+			interval.inserted = false;
 			return [node, false, subRowIndex];
 		}
 
-		let inserted;
-		if (interval[0] < l) {
-			[node.left, inserted, subRowIndex] = this._insert(
+		// let inserted;
+
+		if (isDuplicate) {
+			[node.left, interval.inserted, subRowIndex] = this._insert(
+				node.left,
+				interval,
+				subRowIndex
+			);
+			[node.right, interval.inserted, subRowIndex] = this._insert(
+				node.right,
+				interval,
+				subRowIndex
+			);
+		}
+		
+		else if (interval.slots[0] < l) {
+			
+			[node.left, interval.inserted, subRowIndex] = this._insert(
 				node.left,
 				interval,
 				subRowIndex
 			);
 		} else {
-			[node.right, inserted, subRowIndex] = this._insert(
+			[node.right, interval.inserted, subRowIndex] = this._insert(
 				node.right,
 				interval,
 				subRowIndex
 			);
 		}
 
-		node.max = Math.max(node.max, interval[1]);
+		node.max = Math.max(node.max, interval.slots[1]);
 
 		// Update height and check balance
 		node.height =
 			1 + Math.max(this._height(node.left), this._height(node.right));
 
-		return [node, inserted, subRowIndex];
+		if (this._isDuplicate(node.interval, interval.slots)) {
+			// console.log('DUPE')
+			node.subRowIndex.add(subRowIndex)
+		}
+
+		return [node, interval.inserted, subRowIndex];
 	}
 
 	private _height(node: IntervalTreeNode | null): number {
@@ -107,6 +151,16 @@ class IntervalTree {
 		if (!this.mainRoot) return;
 		const nodes = this._collectNodes(this.mainRoot);
 		this.mainRoot = this._buildBalanced(nodes, 0, nodes.length - 1);
+	}
+
+	getMainRoot(): IntervalTreeNode | null{
+		return this.mainRoot
+	}
+
+	findNodeForTest(interval: [number, number]): IntervalTreeNode | undefined {
+		const nodes = this._collectNodes(this.mainRoot);
+		const res = nodes.find((node) => node.interval[0] === interval[0] && node.interval[1] === interval[1])
+		return res
 	}
 
 	private _collectNodes(node: IntervalTreeNode | null): IntervalTreeNode[] {
@@ -181,6 +235,17 @@ class IntervalTree {
 			interval1Start === interval2Start ||
 			interval1End === interval2End
 		);
+	}
+
+	private _isDuplicate(
+		interval1: [number, number],
+		interval2: [number, number]
+	): boolean {
+		const interval1Start = interval1[0];
+		const interval1End = interval1[1];
+		const interval2Start = interval2[0];
+		const interval2End = interval2[1];
+		return interval1Start === interval2Start && interval1End === interval2End;
 	}
 
 	// private _doesClash(nodeParams, insertParams): boolean {

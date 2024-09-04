@@ -15,7 +15,7 @@ export function buildSubRowsForDay(sessionList, config) {
 	// 	[0, new IntervalTree()],
 	// ])
 	let subRows: SessionSlot[][] = []
-	// let altSubs: [number, number][] = []
+	let altRows: [number, number][] = []
 	console.time('plotgrid')
 	sessionList.forEach((session, idx) => {
 		const startSlot = Math.floor(getSlotFromDurationMins(
@@ -33,22 +33,27 @@ export function buildSubRowsForDay(sessionList, config) {
 		let subRowIndex = 0
 
 		while(!hasInserted) {
-			if (idx === sessionList.length - 1) {
-				console.time('tree')
-			}
+			// if (idx === sessionList.length - 1) {
+			// 	console.time('tree')
+			// }
+			// console.log('TR--', altRows)
 			const [didInsert, subIdx] = tree.insert([startSlot, endSlot], subRowIndex)
 			// console.log('didInsert', didInsert, subIdx)
-			if (idx === sessionList.length - 1) {
-				console.timeEnd('tree')
-			}
-			
+			// if (idx === sessionList.length - 1) {
+			// 	console.timeEnd('tree')
+			// }
+			// console.log('HAS INSERT--', didInsert)
 			if (didInsert) {
 				hasInserted = true
 				if (!subRows[subIdx]) {
 					subRows[subIdx] = []
-				} else {
+				} 
 					subRows[subIdx].push({interval: [startSlot, endSlot], session})
+				
+				if (!altRows[subIdx]) {
+					altRows[subIdx] = []
 				}
+				altRows[subIdx].push([startSlot, endSlot])
 			} else {
 				subRowIndex = subIdx + 1
 			}
@@ -86,6 +91,6 @@ export function buildSubRowsForDay(sessionList, config) {
 	});
 	
 	console.timeEnd('plotgrid')
-	// console.log('alt::', altSubs)
+	// console.log('alt::', altRows)
     return []
 }
